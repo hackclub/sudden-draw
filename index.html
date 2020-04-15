@@ -22,6 +22,11 @@
         box-shadow: none;
         font-size: 3rem;
       }
+      #canvasDiv {
+        border: 1px solid black;
+        position: relative;
+        margin: 0 auto;
+      }
       #toolsDiv {
         background: rgba(0,0,0,0.2);
         display: flex;
@@ -30,6 +35,16 @@
       }
       input, label {
         display: block;
+      }
+      canvas {
+        position: absolute;
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
+        top: 0px;
+        left: 0px;
+      }
+      #canvas2 {
+        pointer-events: none;
       }
       .field {
         display: inline-block;

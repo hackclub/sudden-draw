@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = true
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = false
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -67,17 +67,27 @@ if (!getMemory()) {
 // Initialization
 const canvasDiv = document.querySelector('#canvasDiv')
 canvas = document.createElement('canvas')
+canvas2 = document.createElement('canvas')
 canvas.setAttribute('width', getMemory().canvasWidth)
 canvas.setAttribute('height', getMemory().canvasHeight)
 canvas.setAttribute('id', 'canvas')
-const pixelation = 'image-rendering: crisp-edges; image-rendering: pixelated;'
-const borders = 'border: 1px solid black;'
-canvas.setAttribute('style', `${pixelation} ${borders} width: ${getMemory().canvasWidth * getMemory().scaling}px; height: ${getMemory().canvasHeight * getMemory().scaling}px;`)
+canvas2.setAttribute('width', getMemory().canvasWidth)
+canvas2.setAttribute('height', getMemory().canvasHeight)
+canvas2.setAttribute('id', 'canvas2')
+// canvas.style.filter = hidden ? 'blur(25px)' : 'none'
+canvas.style.width = getMemory().canvasWidth * getMemory().scaling + 'px'
+canvas.style.height = getMemory().canvasHeight * getMemory().scaling + 'px'
+canvas2.style.width = getMemory().canvasWidth * getMemory().scaling + 'px'
+canvas2.style.height = getMemory().canvasHeight * getMemory().scaling + 'px'
+canvasDiv.style.width = getMemory().canvasWidth * getMemory().scaling + 'px'
+canvasDiv.style.height = getMemory().canvasHeight * getMemory().scaling + 'px'
 canvasDiv.appendChild(canvas)
+canvasDiv.appendChild(canvas2)
 if (typeof G_vmlCanvasManager != 'undefined') {
   canvas = G_vmlCanvasManager.initElement(canvas)
 }
 context = canvas.getContext('2d')
+context2 = canvas2.getContext('2d')
 
 // Buttons & tools
 document.querySelector('#sizePicker').value = getMemory().size
@@ -155,12 +165,13 @@ document.querySelector('#exportButton').addEventListener('click', e => {
 })
 document.querySelector('#hideButton').addEventListener('click', e => {
   hidden = !hidden
-  redraw(true)
+  redraw()
 })
 document.querySelector('#forgetButton').addEventListener('click', e => {
   if (confirm('Anything not saved will be lost...')) {
     localStorage.removeItem('sketch')
     initMemory()
+    location.reload()
   }
 })
 document.querySelector('#undoButton').addEventListener('click', e => {
@@ -244,34 +255,37 @@ function addClick(x, y, dragging) {
   setClicks(clicks)
 }
 
-function drawClick(click) {
-  context.beginPath()
+function drawClick(click, ctxVar = 1) {
+  let ctx = ctxVar == 1 ? context : context2
+  ctx.beginPath()
   if (click.shiftPressed) {
     const point = click.points[0]
     const endpoint = click.points[Math.max(0, click.points.length - 1)]
-    context.moveTo(point.x, point.y)
-    context.lineTo(endpoint.x, endpoint.y)
-    context.lineCap = 'round'
-    context.strokeStyle = click.color
-    context.lineWidth = click.size
-    context.stroke()
+    ctx.moveTo(point.x, point.y)
+    ctx.lineTo(endpoint.x, endpoint.y)
+    ctx.lineCap = 'round'
+    // ctx.strokeStyle = click.color
+    ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
+    ctx.lineWidth = click.size
+    ctx.stroke()
   } else {
     for (let i = 0; i < click.points.length; i++) {
       let point = click.points[i]
       let prevPoint = click.points[i - 1]
       if (prevPoint) {
-        context.moveTo(prevPoint.x, prevPoint.y)
+        ctx.moveTo(prevPoint.x, prevPoint.y)
       } else {
-        context.moveTo(point.x - 1, point.y)
+        ctx.moveTo(point.x - 1, point.y)
       }
-      context.lineTo(point.x, point.y)
-      context.strokeStyle = click.color
-      context.lineWidth = click.size
-      context.lineCap = 'round'
-      context.stroke()
+      ctx.lineTo(point.x, point.y)
+      // ctx.strokeStyle = click.color
+      ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
+      ctx.lineWidth = click.size
+      ctx.lineCap = 'round'
+      ctx.stroke()
     }
   }
-  context.closePath()
+  ctx.closePath()
 }
 
 function redraw(fullRedraw = true) {
@@ -279,32 +293,35 @@ function redraw(fullRedraw = true) {
   const shownClicks = getClicks().filter(clicks => !clicks.undone)
   if (hidden) {
     context.fillStyle = memory.backgroundColor
-    // context.filter('blur(50px)')
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+    context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
     const lastClick = shownClicks[shownClicks.length - 1]
-    if (isShiftPressed) {
-      drawClick(lastClick)
-    } else {
-      drawClick({
-        ...lastClick,
-        points: [...lastClick.points.slice(-20)]
-      })
+    if (lastClick) {
+      if (isShiftPressed) {
+        drawClick(lastClick, 2)
+      } else {
+        drawClick({
+          ...lastClick,
+          points: [...lastClick.points.slice(-20)]
+        }, 2)
+      }
     }
-  } else {
+  } else { // if !hidden
     // draw clicks on page
     if (fullRedraw) {
       context.fillStyle = memory.backgroundColor
       context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-      shownClicks.forEach(drawClick)
+      context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
+      shownClicks.forEach(click => {drawClick(click, 1)})
     } else {
       const lastClick = shownClicks[shownClicks.length - 1]
       if (isShiftPressed) {
-        drawClick(lastClick)
+        drawClick(lastClick, 2)
       } else {
         drawClick({
           ...lastClick,
           points: [...lastClick.points.slice(-2)]
-        })
+        }, 2)
       }
     }
   }
@@ -313,8 +330,8 @@ function redraw(fullRedraw = true) {
 function clickStart(event) {
   event.preventDefault()
   const { scaling } = getMemory()
-  mouseX = (event.pageX - canvas.offsetLeft) / scaling
-  mouseY = (event.pageY - canvas.offsetTop) / scaling
+  mouseX = (event.pageX-canvas.parentNode.offsetLeft) / scaling
+  mouseY = (event.pageY-canvas.parentNode.offsetTop) / scaling
   addClick(mouseX, mouseY, false)
   paint = true
   redraw(false)
@@ -330,8 +347,8 @@ canvas.addEventListener('touchstart', e => {
 function clickDrag(event) {
   event.preventDefault()
   const { scaling } = getMemory()
-  mouseX = (event.pageX - canvas.offsetLeft) / scaling
-  mouseY = (event.pageY - canvas.offsetTop) / scaling
+  mouseX = (event.pageX-canvas.parentNode.offsetLeft) / scaling
+  mouseY = (event.pageY-canvas.parentNode.offsetTop) / scaling
   if (paint) {
     addClick(mouseX, mouseY, true)
     if (isShiftPressed) {
