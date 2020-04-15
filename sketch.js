@@ -371,5 +371,6 @@ genTooltip('exportButton', 'export-button.gif', '<strong>UPLOAD:</strong>Gurgles
 genTooltip('redoButton', 'redo-button.gif', '<strong>REDO:</strong> Every press goes <em>forward</em> by a step. <em>Doesn\'t go to the future, just the present.</em>')
 genTooltip('undoButton', 'undo-button.gif', '<strong>UNDO:</strong> Every press goes <em>back</em> by a step.')
 genTooltip('saveButton', 'save-button.gif', '<strong>DLOAD:</strong><span style="color: #00ff67; font-weight: bold;">Save and download</span> the drawing to your computer.')
+genTooltip('timerHolder', 'deadline-button.gif', 'Toggle the deadline visibility. <em>⚠️ Despite appearances, time will continue to flow</em>.')
 
 redraw()

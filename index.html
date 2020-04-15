@@ -39,6 +39,10 @@
         border: 1px solid black;
         position: absolute;
       }
+
+      #timerHolder {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body style="text-align: center;">
@@ -65,6 +69,7 @@
     </div>
     <div id="canvasDiv"></div>
     <!-- <img src="" id="mirror" /> -->
+    <div id="timerHolder" onclick="$('#timerCount').toggle()">⏰ <span id="timerCount">Loading...</span></div>
     <ul>
       <li>hold shift for straight lines</li>
       <li>q, back a layer</li>
@@ -72,5 +77,6 @@
       <li>p, toggle modes (loop the animation | new layer)</li>
     </ul>
     <script type="text/javascript" src="sketch.js"></script>
+    <script type="text/javascript" src="timer.js"></script>
   </body>
 </html>
