@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = false
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = true
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -51,6 +51,7 @@ function initMemory() {
     layers: [],
     activeLayerIndex: 0,
     size: 25,
+    name: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     ghostColor: 'grey', // color of mouse cursor
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
@@ -66,8 +67,8 @@ if (!getMemory()) {
 
 // Initialization
 const canvasDiv = document.querySelector('#canvasDiv')
-canvas = document.createElement('canvas')
-canvas2 = document.createElement('canvas')
+const canvas = document.createElement('canvas')
+const canvas2 = document.createElement('canvas')
 canvas.setAttribute('width', getMemory().canvasWidth)
 canvas.setAttribute('height', getMemory().canvasHeight)
 canvas.setAttribute('id', 'canvas')
@@ -264,8 +265,8 @@ function drawClick(click, ctxVar = 1) {
     ctx.moveTo(point.x, point.y)
     ctx.lineTo(endpoint.x, endpoint.y)
     ctx.lineCap = 'round'
-    // ctx.strokeStyle = click.color
-    ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
+    ctx.strokeStyle = click.color
+    // ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
     ctx.lineWidth = click.size
     ctx.stroke()
   } else {
@@ -278,8 +279,8 @@ function drawClick(click, ctxVar = 1) {
         ctx.moveTo(point.x - 1, point.y)
       }
       ctx.lineTo(point.x, point.y)
-      // ctx.strokeStyle = click.color
-      ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
+      ctx.strokeStyle = click.color
+      // ctx.strokeStyle = ctxVar == 1 ? '#abfe99' : '#feab99'
       ctx.lineWidth = click.size
       ctx.lineCap = 'round'
       ctx.stroke()
@@ -288,42 +289,42 @@ function drawClick(click, ctxVar = 1) {
   ctx.closePath()
 }
 
-function redraw(fullRedraw = true) {
-  const memory = getMemory()
+function renderPartialCanvas() {
+  // clear the canvas
+  context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
+
+  // draw the last couple steps
   const shownClicks = getClicks().filter(clicks => !clicks.undone)
-  if (hidden) {
-    context.fillStyle = memory.backgroundColor
-    context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-    context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
-    const lastClick = shownClicks[shownClicks.length - 1]
-    if (lastClick) {
-      if (isShiftPressed) {
-        drawClick(lastClick, 2)
-      } else {
-        drawClick({
-          ...lastClick,
-          points: [...lastClick.points.slice(-20)]
-        }, 2)
-      }
-    }
-  } else { // if !hidden
-    // draw clicks on page
-    if (fullRedraw) {
-      context.fillStyle = memory.backgroundColor
-      context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-      context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
-      shownClicks.forEach(click => {drawClick(click, 1)})
+  const lastClick = shownClicks[shownClicks.length - 1]
+  if (lastClick) {
+    if (isShiftPressed) {
+      drawClick(lastClick, 2)
     } else {
-      const lastClick = shownClicks[shownClicks.length - 1]
-      if (isShiftPressed) {
-        drawClick(lastClick, 2)
-      } else {
-        drawClick({
-          ...lastClick,
-          points: [...lastClick.points.slice(-2)]
-        }, 2)
-      }
+      drawClick({
+        ...lastClick,
+        points: [...lastClick.points.slice(-20)]
+      }, 2)
     }
+  }
+}
+
+function renderFullCanvas() {
+  // clear the canvas
+  context.fillStyle = getMemory().backgroundColor
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+
+  // draw the clicks
+  const shownClicks = getClicks().filter(clicks => !clicks.undone)
+  shownClicks.forEach(click => {drawClick(click, 1)})
+  if (hidden) {
+    stackBlurCanvasRGB( "canvas", 0, 0, getMemory().canvasWidth, getMemory().canvasHeight, 100 )
+  }
+}
+
+function redraw(fullRedraw = true) {
+  renderPartialCanvas()
+  if (fullRedraw) {
+    renderFullCanvas()
   }
 }
 
@@ -384,7 +385,7 @@ canvas.addEventListener('touchcancel', e => {
 
 // tooltips
 function genTooltip(id, image, description='') {
-  tippy(`#${id}`, {
+  return tippy(`#${id}`, {
     content: `<div style="max-width: 300px;"><img src="${image}" style="max-width: 100%;" /><p style="font-weight: 500; font-family: system-ui;">${description}</p></div>`,
     delay: [500, 0],
     followCursor: 'horizontal',

@@ -28,3 +28,9 @@ i've got color, but it'd be nice to have a color history. tbh it's 4am and i'm c
 - [ ] auto file upload
 - [ ] timer (thinking i pull time from airtable & the timer is hiddable by clicking on it)
 - [ ] url param setting of variables (ie. for this theme you have to use the following hex color provided by the link)
+
+---
+
+- [ ] see tool size on draw
+- [ ] blur full renders, draw current renders on second canvas layer
+- [ ] background color
