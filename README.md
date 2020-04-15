@@ -22,3 +22,9 @@ done with the optimizing. it doesn't lag anymore on any of the platforms i'm tes
 
 ### tools available
 
+i've got color, but it'd be nice to have a color history. tbh it's 4am and i'm crazy tired. i'll just list the features and figure out where to go from there.
+
+- [ ] color swapping (ie photoshop's 2 random-access-colors)
+- [ ] auto file upload
+- [ ] timer (thinking i pull time from airtable & the timer is hiddable by clicking on it)
+- [ ] url param setting of variables (ie. for this theme you have to use the following hex color provided by the link)

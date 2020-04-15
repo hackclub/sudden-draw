@@ -312,18 +312,21 @@ canvas.addEventListener('touchcancel', e => {
 })
 
 // tooltips
-// function genTooltip(id, image, description='') {
-//   tippy(`#${id}`, {
-//     content: `<div style="max-width: 300px;"><img src="${image}" style="max-width: 100%;" /><p style="font-weight: 500; font-family: system-ui;">${description}</p></div>`,
-//     delay: [500, 0],
-//     followCursor: 'horizontal',
-//     placement: 'bottom'
-//   })
-// }
+function genTooltip(id, image, description='') {
+  tippy(`#${id}`, {
+    content: `<div style="max-width: 300px;"><img src="${image}" style="max-width: 100%;" /><p style="font-weight: 500; font-family: system-ui;">${description}</p></div>`,
+    delay: [500, 0],
+    followCursor: 'horizontal',
+    placement: 'bottom'
+  })
+}
+// genTooltip('sizePickerField', 'save-button.gif', 'Saves the drawing to your computer. <span style="color: #ff6700; font-weight: bold;">This will not save your dino on this website.</style>')
 // genTooltip('thinButton', 'thin-button.gif', 'Draw a <span style="font-weight: 100;">thin</span> black line')
 // genTooltip('thickButton', 'thick-button.gif', 'Draw a <span style="font-weight: 800;">thick</span> black line')
 // genTooltip('templateButton', 'template-button.gif', 'Show a dino outline you can use as a starting point. You can toggle it on and off anytime.')
 // genTooltip('eraseButton', 'erase-button.gif', 'Draw with a <span style="background: white; color: black; border-radius: 5px;">white</span> marker to erase mistakes or cut out black parts of an image. Also covers the dino template.')
-// genTooltip('saveButton', 'save-button.gif', 'Saves the drawing to your computer. Automatically adds a file extension. <span style="color: #ff6700; font-weight: bold;">This will not save your dino on this website.</style>')
+genTooltip('redoButton', 'redo-button.gif', '<strong>REDO:</strong> Every press goes <em>forward</em> by a step. <em>Doesn\'t go to the future, just the present.</em>')
+genTooltip('undoButton', 'undo-button.gif', '<strong>UNDO:</strong> Every press goes <em>back</em> by a step.')
+genTooltip('saveButton', 'save-button.gif', ' <span style="color: #ff6700; font-weight: bold;">Save and download</span> the drawing to your computer.')
 
 redraw()
