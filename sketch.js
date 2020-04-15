@@ -84,7 +84,7 @@ document.querySelector('#sizePicker').addEventListener('change', e => {
   setMemory('size', e.target.value)
 })
 document.querySelector('#colorPicker').value = getMemory().drawColor
-document.querySelector('#colorPicker').addEventListener('change', e => {
+document.querySelector('#colorPicker').addEventListener('input', e => {
   setMemory('drawColor', e.target.value)
 })
 // document.querySelector('#drawButton').addEventListener('click', e => {
