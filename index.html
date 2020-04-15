@@ -34,11 +34,17 @@
       .field {
         display: inline-block;
       }
+      #sizePreview {
+        border-radius: 100%;
+        border: 1px solid black;
+        position: absolute;
+      }
     </style>
   </head>
   <body style="text-align: center;">
     <div id="toolsDiv">
-      <div class="field">
+      <div class="field" id="sizePickerField">
+        <div id="sizePreview"></div>
         <label for="sizePicker">Tool size</label>
         <input type="range" id="sizePicker" min="1" max="20" />
       </div>

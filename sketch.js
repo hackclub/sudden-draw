@@ -80,8 +80,13 @@ context = canvas.getContext('2d')
 
 // Buttons & tools
 document.querySelector('#sizePicker').value = getMemory().size
-document.querySelector('#sizePicker').addEventListener('change', e => {
+document.querySelector('#sizePreview').style.height = `${getMemory().size * getMemory().scaling}px`
+document.querySelector('#sizePreview').style.width = `${getMemory().size * getMemory().scaling}px`
+console.log(document.querySelector('#sizePreview'))
+document.querySelector('#sizePicker').addEventListener('input', e => {
   setMemory('size', e.target.value)
+  document.querySelector('#sizePreview').style.height = `${getMemory().size * getMemory().scaling}px`
+  document.querySelector('#sizePreview').style.width = `${getMemory().size * getMemory().scaling}px`
 })
 document.querySelector('#colorPicker').value = getMemory().drawColor
 document.querySelector('#colorPicker').addEventListener('input', e => {
