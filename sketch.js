@@ -116,9 +116,10 @@ document.querySelector('#saveButton').addEventListener('click', e => {
   })
 })
 document.querySelector('#forgetButton').addEventListener('click', e => {
-  if (confirm('Anything not saved will be lost...'))
-  localStorage.removeItem('sketch')
-  initMemory()
+  if (confirm('Anything not saved will be lost...')) {
+    localStorage.removeItem('sketch')
+    initMemory()
+  }
 })
 document.querySelector('#undoButton').addEventListener('click', e => {
   undo()
