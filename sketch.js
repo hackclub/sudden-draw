@@ -42,9 +42,10 @@ function changeActiveLayer(change) {
 }
 function initMemory() {
   const defaults = {
-    scaling: 3,
-    canvasWidth: 256,
-    canvasHeight: 256,
+    scaling: 1, // increase to get a more pixelated effect
+    resolution: 1, // ignore movements that are smaller than this distance (to speed up rendering)
+    canvasWidth: 256 * 3,
+    canvasHeight: 256 * 3,
     drawColor: '#efefab',
     backgroundColor: 'white',
     layers: [],
@@ -210,8 +211,11 @@ function addClick(x, y, dragging) {
   // if we're close to the previous point, just ignore it
   const lastClick = clicks[clicks.length - 1]
   const lastPoint = lastClick?.points[lastClick.points.length -1]
-  const resolution = 2 // if the change is less than this number, don't record the number
-  if (lastPoint && Math.abs(x-lastPoint.x)<resolution && Math.abs(y-lastPoint.y)<resolution) {
+  const {
+    resolution,
+    scaling
+  } = getMemory()
+  if (lastPoint && Math.abs(x-lastPoint.x*scaling)<resolution && Math.abs(y-lastPoint.y*scaling)<resolution) {
     return
   }
 
