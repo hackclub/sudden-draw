@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <!-- From the tutorial at http://www.williammalone.com/articles/create-html5-canvas-javascript-drawing-app/#demo-tools -->
+  <head>
+    <!-- [if lte IE 8]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+    <script type="text/javascript" src="canvas-toBlob.js"></script>
+    <script type="text/javascript" src="FileSaver.js"></script>
+    <script type="text/javascript" src="spectrum.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
+    <script src="https://unpkg.com/popper.js@1"></script>
+    <script src="https://unpkg.com/tippy.js@5"></script>
+    <link href="spectrum.css" />
+
+    <style>
+      body {
+        margin: 0px;
+      }
+      button {
+        background: none;
+        border: none;
+        box-shadow: none;
+        font-size: 3rem;
+      }
+      #toolsDiv {
+        background: rgba(0,0,0,0.2);
+      }
+    </style>
+  </head>
+  <body style="text-align: center;">
+    <div id="toolsDiv">
+      <input type="color" id="colorPicker" />
+      <button id="drawButton">🖌</button>
+      <!-- <button id="templateButton">🦕 Hide / Show template</button> -->
+      <button id="undoButton">⏪</button>
+      <button id="redoButton">⏩</button>
+      <button id="eraseButton">💄</button>
+      <!-- <button id="exportButton">⛴</button> -->
+      <button id="forgetButton">🧨</button>
+      <button id="saveButton">💾</button>
+    </div>
+    <div id="canvasDiv"></div>
+    <!-- <img src="" id="mirror" /> -->
+    <ul>
+      <li>hold shift for straight lines</li>
+      <li>q, back a layer</li>
+      <li>e, forward a layer</li>
+      <li>p, toggle modes (loop the animation | new layer)</li>
+    </ul>
+    <script type="text/javascript" src="sketch.js"></script>
+  </body>
+</html>

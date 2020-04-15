@@ -1,98 +1,135 @@
-// Customization
-const scaling = 3
-const canvasWidth = 256
-const canvasHeight = 256
-const drawColor = 'black'
-const backgroundColor = 'white'
-const thinSize = 2
-const thickSize = 4
+// session state
+var paint, isShiftPressed
 
-var clicks = []
-var templateVisibility = true
-var size = thinSize
-var color = drawColor
-var unsavedChanges = false
-var paint
+document.addEventListener('keydown', e => {
+  if (e.key === 'Shift') {
+    isShiftPressed = true
+    redraw()
+  }
+})
+document.addEventListener('keyup', e => {
+  if (e.key === 'Shift') {
+    isShiftPressed = false
+    redraw()
+  }
+})
+
+// persistent state
+function getMemory() {
+  return JSON.parse(localStorage.getItem('sketch'))
+}
+function setMemory(key, value) {
+  const memory = getMemory()
+  memory[key] = value
+
+  return localStorage.setItem('sketch', JSON.stringify(memory))
+}
+function getClicks() {
+  const memory = getMemory()
+  return memory.layers[memory.activeLayerIndex] || []
+}
+function setClicks(clicks) {
+  // sets the clicks of the active layer
+  const memory = getMemory()
+  memory.layers[memory.activeLayerIndex] = clicks
+  setMemory('layers', memory.layers)
+}
+function changeActiveLayer(change) {
+  const memory = getMemory()
+  setMemory('activeLayerIndex', Math.max(0, memory.activeLayerIndex + change))
+  redraw()
+}
+function initMemory() {
+  const defaults = {
+    scaling: 3,
+    canvasWidth: 256,
+    canvasHeight: 256,
+    drawColor: 'black',
+    backgroundColor: 'white',
+    layers: [],
+    activeLayerIndex: 0,
+    size: 2,
+    color: 'black',
+    ghostColor: 'grey', // color of mouse cursor
+  }
+  localStorage.setItem('sketch', JSON.stringify(defaults))
+
+  redraw()
+}
+
+if (!getMemory()) {
+  initMemory()
+}
 
 // Initialization
 const canvasDiv = document.querySelector('#canvasDiv')
 canvas = document.createElement('canvas')
-canvas.setAttribute('width', canvasWidth)
-canvas.setAttribute('height', canvasHeight)
+canvas.setAttribute('width', getMemory().canvasWidth)
+canvas.setAttribute('height', getMemory().canvasHeight)
 canvas.setAttribute('id', 'canvas')
 const pixelation = 'image-rendering: crisp-edges; image-rendering: pixelated;'
 const borders = 'border: 1px solid black;'
-canvas.setAttribute('style', `${pixelation} ${borders} width: ${canvasWidth * scaling}px; height: ${canvasHeight * scaling}px;`)
+canvas.setAttribute('style', `${pixelation} ${borders} width: ${getMemory().canvasWidth * getMemory().scaling}px; height: ${getMemory().canvasHeight * getMemory().scaling}px;`)
 canvasDiv.appendChild(canvas)
 if (typeof G_vmlCanvasManager != 'undefined') {
   canvas = G_vmlCanvasManager.initElement(canvas)
 }
 context = canvas.getContext('2d')
-const templateImage = new Image()
-templateImage.src = 'template.jpg'
-templateImage.addEventListener('load', e => {
-  redraw()
-})
 
 // Buttons & tools
-document.querySelector('#thickButton').addEventListener('click', e => {
-  size = thickSize
-  color = drawColor
+document.querySelector('#colorPicker').addEventListener('change', e => {
+  setMemory('color', e.target.value)
 })
-document.querySelector('#thinButton').addEventListener('click', e => {
-  size = thinSize
-  color = drawColor
+document.querySelector('#drawButton').addEventListener('click', e => {
+  setMemory('size', 4)
+  setMemory('color', getMemory().drawColor)
 })
 document.querySelector('#eraseButton').addEventListener('click', e => {
-  color = backgroundColor
-})
-document.querySelector('#templateButton').addEventListener('click', e => {
-  templateVisibility = !templateVisibility
-  redraw()
+  setMemory('color', getMemory().backgroundColor)
 })
 function undo() {
+  const clicks = getClicks()
   const doneClicks = clicks.filter(click => !click.undone)
   if (doneClicks.length > 0) {
     doneClicks[doneClicks.length - 1].undone = true
+    setClicks(clicks)
     redraw()
   }
 }
+document.querySelector('#saveButton').addEventListener('click', e => {
+  const name = getMemory().name || prompt('enter your name')
+  if (!name) {
+    return
+  }
+  if (!getMemory().name) {
+    setMemory('name', name)
+  }
+
+  canvas.toBlob(blob => {
+    let safeFileName = `${name}`.replace(/[^\w+]/g, '_')
+
+    saveAs(blob, safeFileName + '.png')
+  })
+})
+document.querySelector('#forgetButton').addEventListener('click', e => {
+  if (confirm('Anything not saved will be lost...'))
+  localStorage.removeItem('sketch')
+  initMemory()
+})
 document.querySelector('#undoButton').addEventListener('click', e => {
   undo()
 })
 function redo() {
+  const clicks = getClicks()
   const recentUndoneClick = clicks.find(click => click.undone)
   if (recentUndoneClick) {
     recentUndoneClick.undone = false
+    setClicks(clicks)
     redraw()
   }
 }
 document.querySelector('#redoButton').addEventListener('click', e => {
   redo()
-})
-document.querySelector('#saveButton').addEventListener('click', e => {
-  const filename = prompt("Name your dino drawing", "dino")
-
-  const urlParams = {}
-  window.location.search.replace('?', '').split('&').forEach(kvString => {
-    const [key, value] = kvString.split('=')
-    urlParams[key] = value
-  })
-  const filePrefix = urlParams['filePrefix']
-
-  if (filename) {
-    canvas.toBlob(blob => {
-      let safeFileName = `${filePrefix}-${filename}`.replace(/[^\w+]/g, '_')
-
-      saveAs(blob, safeFileName + '.png')
-      unsavedChanges = false
-
-      // If this is running as an embed, send the file off to the parent window
-      if (window.parent) {
-        window.parent.postMessage({filename: safeFileName + '.png', blob}, "*")
-      }
-    })
-  }
 })
 
 document.addEventListener('keypress', e => {
@@ -106,64 +143,94 @@ document.addEventListener('keypress', e => {
 
     redo()
   }
-})
+  if (e.key === 'e') {
+    e.preventDefault()
 
-// double check with user before closing the page
-window.addEventListener('beforeunload', e => {
-  if (unsavedChanges) {
-    e.returnValue = 'You have unsaved changes that will be lost.';
+    changeActiveLayer(1)
   }
-});
+  if (e.key === 'q') {
+    e.preventDefault()
+
+    changeActiveLayer(-1)
+  }
+  if (e.key === 'l') {
+    e.preventDefault()
+
+    setMemory('looping', !getMemory().looping)
+  }
+})
 
 // sketching
 function addClick(x, y, dragging) {
+  // when we start clicking, we'll delete the "undone" history for good
+  const clicks = getClicks().filter(click => !click.undone)
   if (dragging) {
     // get the last click and add the coordinate
     const lastClick = clicks[clicks.length - 1]
+    lastClick.shiftPressed = isShiftPressed
     lastClick.points.push({x, y})
   } else {
-    // when we start clicking, we'll delete the "undone" history for good
-    clicks = clicks.filter(click => !click.undone)
     // create a new click
-    clicks.push({size, color, points: [ {x, y} ]})
+    clicks.push({
+      size: getMemory().size,
+      color: getMemory().color,
+      points: [ {x, y} ],
+      shiftPressed: isShiftPressed
+    })
   }
+  setClicks(clicks)
 }
 
 function redraw() {
-  context.fillStyle = backgroundColor
+  const memory = getMemory()
+  context.fillStyle = memory.backgroundColor
   context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+  context.strokeStyle = memory.drawColor
 
-  if (templateVisibility) {
-    context.drawImage(templateImage, context.canvas.width / 5, context.canvas.height / 5, context.canvas.width * 3 / 5, context.canvas.height * 3 / 5)
-  }
+  const shownClicks = getClicks().filter(clicks => !clicks.undone)
 
-  context.strokeStyle = drawColor
-
-  clicks.filter(clicks => !clicks.undone).forEach(click => {
+  // draw clicks on page
+  shownClicks.forEach(click => {
     context.beginPath()
-    for (let i = 0; i < click.points.length; i++) {
-      context.beginPath()
-      let point = click.points[i]
-      let prevPoint = click.points[i - 1]
-      if (prevPoint) {
-        context.moveTo(prevPoint.x, prevPoint.y)
-      } else {
-        context.moveTo(point.x - 1, point.y)
-      }
-      context.lineTo(point.x, point.y)
+    if (click.shiftPressed) {
+      const point = click.points[0]
+      const endpoint = click.points[Math.max(0, click.points.length - 1)]
+      context.moveTo(point.x, point.y)
+      context.lineTo(endpoint.x, endpoint.y)
       context.closePath()
       context.strokeStyle = click.color
       context.lineWidth = click.size
       context.stroke()
+    } else {
+      for (let i = 0; i < click.points.length; i++) {
+        let point = click.points[i]
+        let prevPoint = click.points[i - 1]
+        if (prevPoint) {
+          context.moveTo(prevPoint.x, prevPoint.y)
+        } else {
+          context.moveTo(point.x - 1, point.y)
+        }
+        context.lineTo(point.x, point.y)
+        context.closePath()
+        context.strokeStyle = click.color
+        context.lineWidth = click.size
+        context.stroke()
+      }
     }
   })
+
+  // render a circle around the cursor
+  if (memory.mousePosition) {
+    context.fillStyle = memory.ghostColor
+    context.ellipse(memory.mousePosition.x, memory.mousePosition.y, memory.size, memory.size, 0, 0, 2 * Math.PI)
+  }
 }
 
 function clickStart(event) {
   event.preventDefault()
   unsavedChanges = true
-  mouseX = (event.pageX - canvas.offsetLeft) / scaling
-  mouseY = (event.pageY - canvas.offsetTop) / scaling
+  mouseX = (event.pageX - canvas.offsetLeft) / getMemory().scaling
+  mouseY = (event.pageY - canvas.offsetTop) / getMemory().scaling
   addClick(mouseX, mouseY, false)
   paint = true
   redraw()
@@ -178,9 +245,10 @@ canvas.addEventListener('touchstart', e => {
 
 function clickDrag(event) {
   event.preventDefault()
+  mouseX = (event.pageX - canvas.offsetLeft) / getMemory().scaling
+  mouseY = (event.pageY - canvas.offsetTop) / getMemory().scaling
+  setMemory('mousePosition', {x: mouseX, y: mouseY})
   if (paint) {
-    mouseX = (event.pageX - canvas.offsetLeft) / scaling
-    mouseY = (event.pageY - canvas.offsetTop) / scaling
     addClick(mouseX, mouseY, true)
     redraw()
   }
@@ -209,16 +277,18 @@ canvas.addEventListener('touchcancel', e => {
 })
 
 // tooltips
-function genTooltip(id, image, description='') {
-  tippy(`#${id}`, {
-    content: `<div style="max-width: 300px;"><img src="${image}" style="max-width: 100%;" /><p style="font-weight: 500; font-family: system-ui;">${description}</p></div>`,
-    delay: [500, 0],
-    followCursor: 'horizontal',
-    placement: 'bottom'
-  })
-}
-genTooltip('thinButton', 'thin-button.gif', 'Draw a <span style="font-weight: 100;">thin</span> black line')
-genTooltip('thickButton', 'thick-button.gif', 'Draw a <span style="font-weight: 800;">thick</span> black line')
-genTooltip('templateButton', 'template-button.gif', 'Show a dino outline you can use as a starting point. You can toggle it on and off anytime.')
-genTooltip('eraseButton', 'erase-button.gif', 'Draw with a <span style="background: white; color: black; border-radius: 5px;">white</span> marker to erase mistakes or cut out black parts of an image. Also covers the dino template.')
-genTooltip('saveButton', 'save-button.gif', 'Saves the drawing to your computer. Automatically adds a file extension. <span style="color: #ff6700; font-weight: bold;">This will not save your dino on this website.</style>')
+// function genTooltip(id, image, description='') {
+//   tippy(`#${id}`, {
+//     content: `<div style="max-width: 300px;"><img src="${image}" style="max-width: 100%;" /><p style="font-weight: 500; font-family: system-ui;">${description}</p></div>`,
+//     delay: [500, 0],
+//     followCursor: 'horizontal',
+//     placement: 'bottom'
+//   })
+// }
+// genTooltip('thinButton', 'thin-button.gif', 'Draw a <span style="font-weight: 100;">thin</span> black line')
+// genTooltip('thickButton', 'thick-button.gif', 'Draw a <span style="font-weight: 800;">thick</span> black line')
+// genTooltip('templateButton', 'template-button.gif', 'Show a dino outline you can use as a starting point. You can toggle it on and off anytime.')
+// genTooltip('eraseButton', 'erase-button.gif', 'Draw with a <span style="background: white; color: black; border-radius: 5px;">white</span> marker to erase mistakes or cut out black parts of an image. Also covers the dino template.')
+// genTooltip('saveButton', 'save-button.gif', 'Saves the drawing to your computer. Automatically adds a file extension. <span style="color: #ff6700; font-weight: bold;">This will not save your dino on this website.</style>')
+
+redraw()
