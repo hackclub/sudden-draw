@@ -50,7 +50,7 @@ function initMemory() {
     backgroundColor: 'white',
     layers: [],
     activeLayerIndex: 0,
-    size: 2,
+    size: 25,
     ghostColor: 'grey', // color of mouse cursor
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
