@@ -329,6 +329,7 @@ canvas.addEventListener('touchmove', e => {
 
 function clickStop() {
   paint = false
+  redraw()
 }
 canvas.addEventListener('mouseup', e => {
   clickStop()
