@@ -11,7 +11,7 @@ everything is stored in localstorage through the `getMemory` && `setMemory` func
   - handle race condition where someone tries to undo while drawing (????)
     - other option is to just lose data & throw an alert that says '🏎🏁'
     - how am i this tired already?
-- [ ] mousemoves shouldn't redraw the whole canvas. if the following is true, it's quicker to just draw in the moment:
+- [x] mousemoves shouldn't redraw the whole canvas. if the following is true, it's quicker to just draw in the moment:
   - shift isn't pressed, and wasn't pressed during the last mouse movement
   - i'm picking up a mousedown, mousemove, or mouseup event
 

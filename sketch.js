@@ -16,19 +16,13 @@ document.addEventListener('keyup', e => {
 
 // persistent state
 function getMemory() {
-  const start = Date.now()
-  const m = JSON.parse(localStorage.getItem('sketch'))
-  console.log('getMemory took', Date.now() - start, 'ms')
-  return m
+  return JSON.parse(localStorage.getItem('sketch'))
 }
 function setMemory(key, value) {
-  const start = Date.now()
   const memory = getMemory()
   memory[key] = value
 
-  const ls = localStorage.setItem('sketch', JSON.stringify(memory))
-  console.log('setMemory took', Date.now() - start, 'ms')
-  return ls
+  return localStorage.setItem('sketch', JSON.stringify(memory))
 }
 function getClicks() {
   const memory = getMemory()
@@ -240,7 +234,15 @@ function redraw(fullRedraw = true) {
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
     shownClicks.forEach(drawClick)
   } else {
-    drawClick(shownClicks[shownClicks.length - 1])
+    const lastClick = shownClicks[shownClicks.length - 1]
+    if (isShiftPressed) {
+      drawClick(lastClick)
+    } else {
+      drawClick({
+        ...lastClick,
+        points: [...lastClick.points.slice(-2)]
+      })
+    }
   }
 
   // render a circle around the cursor
@@ -274,7 +276,6 @@ function clickDrag(event) {
   mouseY = (event.pageY - canvas.offsetTop) / scaling
   if (paint) {
     addClick(mouseX, mouseY, true)
-    console.log('adding click')
     if (isShiftPressed) {
       redraw(true)
     } else {
