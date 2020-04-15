@@ -84,13 +84,13 @@ document.querySelector('#colorPicker').value = getMemory().drawColor
 document.querySelector('#colorPicker').addEventListener('change', e => {
   setMemory('drawColor', e.target.value)
 })
-document.querySelector('#drawButton').addEventListener('click', e => {
-  setMemory('size', 4)
-  setMemory('color', getMemory().drawColor)
-})
-document.querySelector('#eraseButton').addEventListener('click', e => {
-  setMemory('color', getMemory().backgroundColor)
-})
+// document.querySelector('#drawButton').addEventListener('click', e => {
+//   setMemory('size', 4)
+//   setMemory('color', getMemory().drawColor)
+// })
+// document.querySelector('#eraseButton').addEventListener('click', e => {
+//   setMemory('color', getMemory().backgroundColor)
+// })
 function undo() {
   const clicks = getClicks()
   const doneClicks = clicks.filter(click => !click.undone)
