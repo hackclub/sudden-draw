@@ -53,7 +53,9 @@ function initMemory() {
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
 
-  redraw()
+  if (context) {
+    redraw()
+  }
 }
 
 if (!getMemory()) {
