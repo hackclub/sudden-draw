@@ -14,3 +14,5 @@ everything is stored in localstorage through the `getMemory` && `setMemory` func
 - [ ] mousemoves shouldn't redraw the whole canvas. if the following is true, it's quicker to just draw in the moment:
   - shift isn't pressed, and wasn't pressed during the last mouse movement
   - i'm picking up a mousedown, mousemove, or mouseup event
+
+ok, so quick update. i just tested localstorage loading and saving. it's crazy fast. it's totally not the bottleneck even with those super unoptimized calls. this means the route to fixing the lag is optimizing redraws. don't redraw every mouse movement. just do it on mouseup, shift, or tool use

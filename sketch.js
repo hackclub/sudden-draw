@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed
+var paint, isShiftPressed, mouseX, mouseY
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -16,13 +16,19 @@ document.addEventListener('keyup', e => {
 
 // persistent state
 function getMemory() {
-  return JSON.parse(localStorage.getItem('sketch'))
+  const start = Date.now()
+  const m = JSON.parse(localStorage.getItem('sketch'))
+  console.log('getMemory took', Date.now() - start, 'ms')
+  return m
 }
 function setMemory(key, value) {
+  const start = Date.now()
   const memory = getMemory()
   memory[key] = value
 
-  return localStorage.setItem('sketch', JSON.stringify(memory))
+  const ls = localStorage.setItem('sketch', JSON.stringify(memory))
+  console.log('setMemory took', Date.now() - start, 'ms')
+  return ls
 }
 function getClicks() {
   const memory = getMemory()
@@ -166,7 +172,7 @@ function addClick(x, y, dragging) {
   // when we start clicking, we'll delete the "undone" history for good
   const clicks = getClicks().filter(click => !click.undone)
 
-  // if we're close to the previous point, don't save
+  // if we're close to the previous point, just ignore it
   const lastClick = clicks[clicks.length - 1]
   const lastPoint = lastClick?.points[lastClick.points.length -1]
   const resolution = 2 // if the change is less than this number, don't record the number
@@ -175,9 +181,14 @@ function addClick(x, y, dragging) {
   }
 
   if (dragging) {
-    // get the last click and add the coordinate
-    lastClick.shiftPressed = isShiftPressed
-    lastClick.points.push({x, y})
+    if (isShiftPressed && lastClick.points.length > 1) {
+      // get the last click and add the coordinate
+      lastClick.points[lastClick.points.length - 1].x = x
+      lastClick.points[lastClick.points.length - 1].y = y
+    } else {
+      // get the last click and add the coordinate
+      lastClick.points.push({x, y})
+    }
   } else {
     // create a new click
     const { size, drawColor } = getMemory()
@@ -185,48 +196,52 @@ function addClick(x, y, dragging) {
       size: size,
       color: drawColor,
       points: [ {x, y} ],
-      shiftPressed: isShiftPressed
     })
   }
   setClicks(clicks)
 }
 
-function redraw() {
-  const memory = getMemory()
-  context.fillStyle = memory.backgroundColor
-  context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-
-  const shownClicks = getClicks().filter(clicks => !clicks.undone)
-
-  // draw clicks on page
-  shownClicks.forEach(click => {
-    context.beginPath()
-    if (click.shiftPressed) {
-      const point = click.points[0]
-      const endpoint = click.points[Math.max(0, click.points.length - 1)]
-      context.moveTo(point.x, point.y)
-      context.lineTo(endpoint.x, endpoint.y)
+function drawClick(click) {
+  context.beginPath()
+  if (click.shiftPressed) {
+    const point = click.points[0]
+    const endpoint = click.points[Math.max(0, click.points.length - 1)]
+    context.moveTo(point.x, point.y)
+    context.lineTo(endpoint.x, endpoint.y)
+    context.closePath()
+    context.strokeStyle = click.color
+    context.lineWidth = click.size
+    context.stroke()
+  } else {
+    for (let i = 0; i < click.points.length; i++) {
+      let point = click.points[i]
+      let prevPoint = click.points[i - 1]
+      if (prevPoint) {
+        context.moveTo(prevPoint.x, prevPoint.y)
+      } else {
+        context.moveTo(point.x - 1, point.y)
+      }
+      context.lineTo(point.x, point.y)
       context.closePath()
       context.strokeStyle = click.color
       context.lineWidth = click.size
       context.stroke()
-    } else {
-      for (let i = 0; i < click.points.length; i++) {
-        let point = click.points[i]
-        let prevPoint = click.points[i - 1]
-        if (prevPoint) {
-          context.moveTo(prevPoint.x, prevPoint.y)
-        } else {
-          context.moveTo(point.x - 1, point.y)
-        }
-        context.lineTo(point.x, point.y)
-        context.closePath()
-        context.strokeStyle = click.color
-        context.lineWidth = click.size
-        context.stroke()
-      }
     }
-  })
+  }
+}
+
+function redraw(fullRedraw = true) {
+  const memory = getMemory()
+  const shownClicks = getClicks().filter(clicks => !clicks.undone)
+
+  // draw clicks on page
+  if (fullRedraw) {
+    context.fillStyle = memory.backgroundColor
+    context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+    shownClicks.forEach(drawClick)
+  } else {
+    drawClick(shownClicks[shownClicks.length - 1])
+  }
 
   // render a circle around the cursor
   if (memory.mousePosition) {
@@ -237,12 +252,12 @@ function redraw() {
 
 function clickStart(event) {
   event.preventDefault()
-  unsavedChanges = true
-  mouseX = (event.pageX - canvas.offsetLeft) / getMemory().scaling
-  mouseY = (event.pageY - canvas.offsetTop) / getMemory().scaling
+  const { scaling } = getMemory()
+  mouseX = (event.pageX - canvas.offsetLeft) / scaling
+  mouseY = (event.pageY - canvas.offsetTop) / scaling
   addClick(mouseX, mouseY, false)
   paint = true
-  redraw()
+  redraw(false)
 }
 
 canvas.addEventListener('mousedown', e => {
@@ -254,12 +269,17 @@ canvas.addEventListener('touchstart', e => {
 
 function clickDrag(event) {
   event.preventDefault()
-  mouseX = (event.pageX - canvas.offsetLeft) / getMemory().scaling
-  mouseY = (event.pageY - canvas.offsetTop) / getMemory().scaling
-  setMemory('mousePosition', {x: mouseX, y: mouseY})
+  const { scaling } = getMemory()
+  mouseX = (event.pageX - canvas.offsetLeft) / scaling
+  mouseY = (event.pageY - canvas.offsetTop) / scaling
   if (paint) {
     addClick(mouseX, mouseY, true)
-    redraw()
+    console.log('adding click')
+    if (isShiftPressed) {
+      redraw(true)
+    } else {
+      redraw(false)
+    }
   }
 }
 canvas.addEventListener('mousemove', e => {
