@@ -55,7 +55,7 @@ function initMemory() {
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
 
-  if (context) {
+  if (context != undefined) {
     redraw()
   }
 }
@@ -291,27 +291,22 @@ function redraw(fullRedraw = true) {
       })
     }
   } else {
-  // draw clicks on page
-  if (fullRedraw) {
-    context.fillStyle = memory.backgroundColor
-    context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-    shownClicks.forEach(drawClick)
-  } else {
-    const lastClick = shownClicks[shownClicks.length - 1]
-    if (isShiftPressed) {
-      drawClick(lastClick)
+    // draw clicks on page
+    if (fullRedraw) {
+      context.fillStyle = memory.backgroundColor
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+      shownClicks.forEach(drawClick)
     } else {
-      drawClick({
-        ...lastClick,
-        points: [...lastClick.points.slice(-2)]
-      })
+      const lastClick = shownClicks[shownClicks.length - 1]
+      if (isShiftPressed) {
+        drawClick(lastClick)
+      } else {
+        drawClick({
+          ...lastClick,
+          points: [...lastClick.points.slice(-2)]
+        })
+      }
     }
-  }
-
-  // render a circle around the cursor
-  if (memory.mousePosition) {
-    context.fillStyle = memory.ghostColor
-    context.ellipse(memory.mousePosition.x, memory.mousePosition.y, memory.size, memory.size, 0, 0, 2 * Math.PI)
   }
 }
 
