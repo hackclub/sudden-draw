@@ -5,11 +5,12 @@
     <!-- [if lte IE 8]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
     <script type="text/javascript" src="canvas-toBlob.js"></script>
     <script type="text/javascript" src="FileSaver.js"></script>
-    <script type="text/javascript" src="spectrum.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script> -->
     <script src="https://unpkg.com/popper.js@1"></script>
     <script src="https://unpkg.com/tippy.js@5"></script>
-    <link href="spectrum.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css">
 
     <style>
       body {
@@ -23,13 +24,30 @@
       }
       #toolsDiv {
         background: rgba(0,0,0,0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      input, label {
+        display: block;
+      }
+      .field {
+        display: inline-block;
       }
     </style>
   </head>
   <body style="text-align: center;">
     <div id="toolsDiv">
-      <input type="range" id="sizePicker" min="1" max="20" />
-      <input type="color" id="colorPicker" />
+      <div class="field">
+        <label for="sizePicker">Tool size</label>
+        <input type="range" id="sizePicker" min="1" max="20" />
+      </div>
+      <div class="field">
+        <label for="colorPicker">Tool color</label>
+        <input type="color" id="colorPicker" />
+        <!-- <input type="color" id="colorPicker2" /> -->
+      </div>
+      <!-- <button id="swapColorButton">🔄</button> -->
       <!-- <button id="drawButton">🖌</button> -->
       <!-- <button id="templateButton">🦕 Hide / Show template</button> -->
       <button id="undoButton">⏪</button>
