@@ -44,12 +44,11 @@ function initMemory() {
     scaling: 3,
     canvasWidth: 256,
     canvasHeight: 256,
-    drawColor: 'black',
+    drawColor: '#efefab',
     backgroundColor: 'white',
     layers: [],
     activeLayerIndex: 0,
     size: 2,
-    color: 'black',
     ghostColor: 'grey', // color of mouse cursor
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
@@ -77,8 +76,10 @@ if (typeof G_vmlCanvasManager != 'undefined') {
 context = canvas.getContext('2d')
 
 // Buttons & tools
+document.querySelector('#colorPicker').value = getMemory().drawColor
 document.querySelector('#colorPicker').addEventListener('change', e => {
-  setMemory('color', e.target.value)
+  console.log
+  setMemory('drawColor', e.target.value)
 })
 document.querySelector('#drawButton').addEventListener('click', e => {
   setMemory('size', 4)
@@ -164,16 +165,25 @@ document.addEventListener('keypress', e => {
 function addClick(x, y, dragging) {
   // when we start clicking, we'll delete the "undone" history for good
   const clicks = getClicks().filter(click => !click.undone)
+
+  // if we're close to the previous point, don't save
+  const lastClick = clicks[clicks.length - 1]
+  const lastPoint = lastClick?.points[lastClick.points.length -1]
+  const resolution = 2 // if the change is less than this number, don't record the number
+  if (lastPoint && Math.abs(x-lastPoint.x)<resolution && Math.abs(y-lastPoint.y)<resolution) {
+    return
+  }
+
   if (dragging) {
     // get the last click and add the coordinate
-    const lastClick = clicks[clicks.length - 1]
     lastClick.shiftPressed = isShiftPressed
     lastClick.points.push({x, y})
   } else {
     // create a new click
+    const { size, drawColor } = getMemory()
     clicks.push({
-      size: getMemory().size,
-      color: getMemory().color,
+      size: size,
+      color: drawColor,
       points: [ {x, y} ],
       shiftPressed: isShiftPressed
     })
@@ -185,7 +195,6 @@ function redraw() {
   const memory = getMemory()
   context.fillStyle = memory.backgroundColor
   context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-  context.strokeStyle = memory.drawColor
 
   const shownClicks = getClicks().filter(clicks => !clicks.undone)
 
