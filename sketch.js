@@ -76,9 +76,12 @@ if (typeof G_vmlCanvasManager != 'undefined') {
 context = canvas.getContext('2d')
 
 // Buttons & tools
+document.querySelector('#sizePicker').value = getMemory().size
+document.querySelector('#sizePicker').addEventListener('change', e => {
+  setMemory('size', e.target.value)
+})
 document.querySelector('#colorPicker').value = getMemory().drawColor
 document.querySelector('#colorPicker').addEventListener('change', e => {
-  console.log
   setMemory('drawColor', e.target.value)
 })
 document.querySelector('#drawButton').addEventListener('click', e => {
@@ -202,7 +205,7 @@ function drawClick(click) {
     const endpoint = click.points[Math.max(0, click.points.length - 1)]
     context.moveTo(point.x, point.y)
     context.lineTo(endpoint.x, endpoint.y)
-    context.closePath()
+    context.lineCap = 'round'
     context.strokeStyle = click.color
     context.lineWidth = click.size
     context.stroke()
@@ -216,12 +219,13 @@ function drawClick(click) {
         context.moveTo(point.x - 1, point.y)
       }
       context.lineTo(point.x, point.y)
-      context.closePath()
       context.strokeStyle = click.color
       context.lineWidth = click.size
+      context.lineCap = 'round'
       context.stroke()
     }
   }
+  context.closePath()
 }
 
 function redraw(fullRedraw = true) {
