@@ -46,7 +46,7 @@ function initMemory() {
     resolution: 1, // ignore movements that are smaller than this distance (to speed up rendering)
     canvasWidth: 256 * 3,
     canvasHeight: 256 * 3,
-    drawColor: '#efefab',
+    drawColor: '#ec3750',
     backgroundColor: 'white',
     layers: [],
     activeLayerIndex: 0,
