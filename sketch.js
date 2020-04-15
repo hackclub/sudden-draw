@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -33,6 +33,7 @@ function setClicks(clicks) {
   const memory = getMemory()
   memory.layers[memory.activeLayerIndex] = clicks
   setMemory('layers', memory.layers)
+  unexportedChanges = true
 }
 function changeActiveLayer(change) {
   const memory = getMemory()
@@ -116,6 +117,35 @@ document.querySelector('#saveButton').addEventListener('click', e => {
 
     saveAs(blob, safeFileName + '.png')
   })
+})
+function exportToAirtable(final = 0) {
+  const name = getMemory().name || prompt('enter your name')
+  if (!name) {
+    return
+  }
+  if (!getMemory().name) {
+    setMemory('name', name)
+  }
+
+  const dataURL = canvas.toDataURL()
+  const zapierURL = 'https://hooks.zapier.com/hooks/catch/507705/o5uvtyq/'
+  fetch(zapierURL, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: name,
+      dataURL: dataURL,
+      finalSubmission: final
+    })
+  }).then(res => {
+    console.log('submitted!')
+    if (final == 1) {
+      unexportedChanges = false
+      alert('Sent to Airtable!')
+    }
+  })
+}
+document.querySelector('#exportButton').addEventListener('click', e => {
+  exportToAirtable(1)
 })
 document.querySelector('#forgetButton').addEventListener('click', e => {
   if (confirm('Anything not saved will be lost...')) {
@@ -327,8 +357,9 @@ function genTooltip(id, image, description='') {
 // genTooltip('thickButton', 'thick-button.gif', 'Draw a <span style="font-weight: 800;">thick</span> black line')
 // genTooltip('templateButton', 'template-button.gif', 'Show a dino outline you can use as a starting point. You can toggle it on and off anytime.')
 // genTooltip('eraseButton', 'erase-button.gif', 'Draw with a <span style="background: white; color: black; border-radius: 5px;">white</span> marker to erase mistakes or cut out black parts of an image. Also covers the dino template.')
+genTooltip('exportButton', 'export-button.gif', '<strong>UPLOAD:</strong>Gurgles the bits and spits \'em out into the tubes of light connecting the world. <span style="color: #ff6700; font-weight: bold;">We aren\'t responsible for the voilence causes by videogames running on the web.</span>')
 genTooltip('redoButton', 'redo-button.gif', '<strong>REDO:</strong> Every press goes <em>forward</em> by a step. <em>Doesn\'t go to the future, just the present.</em>')
 genTooltip('undoButton', 'undo-button.gif', '<strong>UNDO:</strong> Every press goes <em>back</em> by a step.')
-genTooltip('saveButton', 'save-button.gif', ' <span style="color: #ff6700; font-weight: bold;">Save and download</span> the drawing to your computer.')
+genTooltip('saveButton', 'save-button.gif', '<strong>DLOAD:</strong><span style="color: #00ff67; font-weight: bold;">Save and download</span> the drawing to your computer.')
 
 redraw()
