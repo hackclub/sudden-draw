@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY, unexportedChanges
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = true
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -153,6 +153,10 @@ function exportToAirtable(final = 0) {
 document.querySelector('#exportButton').addEventListener('click', e => {
   exportToAirtable(1)
 })
+document.querySelector('#hideButton').addEventListener('click', e => {
+  hidden = !hidden
+  redraw(true)
+})
 document.querySelector('#forgetButton').addEventListener('click', e => {
   if (confirm('Anything not saved will be lost...')) {
     localStorage.removeItem('sketch')
@@ -273,7 +277,20 @@ function drawClick(click) {
 function redraw(fullRedraw = true) {
   const memory = getMemory()
   const shownClicks = getClicks().filter(clicks => !clicks.undone)
-
+  if (hidden) {
+    context.fillStyle = memory.backgroundColor
+    // context.filter('blur(50px)')
+    context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+    const lastClick = shownClicks[shownClicks.length - 1]
+    if (isShiftPressed) {
+      drawClick(lastClick)
+    } else {
+      drawClick({
+        ...lastClick,
+        points: [...lastClick.points.slice(-20)]
+      })
+    }
+  } else {
   // draw clicks on page
   if (fullRedraw) {
     context.fillStyle = memory.backgroundColor
