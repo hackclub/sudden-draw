@@ -225,7 +225,7 @@ function addClick(x, y, dragging) {
   const clicks = getClicks().filter(click => !click.undone)
 
   // if we're close to the previous point, just ignore it
-  const lastClick = clicks[clicks.length - 1]
+  const lastClick = clicks[clicks.length - 1] || { points: [] }
   const lastPoint = lastClick?.points[lastClick.points.length -1]
   const {
     resolution,
