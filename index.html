@@ -83,6 +83,17 @@
         text-decoration: underline;
         display: none;
       }
+      .spin {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotateZ(0);
+        }
+        100% {
+          transform: rotateZ(360deg);
+        }
+      }
     </style>
   </head>
   <body style="text-align: center;">

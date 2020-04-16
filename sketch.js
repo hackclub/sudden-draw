@@ -135,7 +135,7 @@ document.querySelector('#saveButton').addEventListener('click', e => {
     saveAs(blob, safeFileName + '.png')
   })
 })
-function exportToAirtable(final = 0) {
+async function exportToAirtable(final = 0) {
   const name = getMemory().name || prompt('enter your name')
   if (!name) {
     return
@@ -144,14 +144,38 @@ function exportToAirtable(final = 0) {
     setMemory('name', name)
   }
 
+  const tempURL = await new Promise((resolve) => {
+    canvas.toBlob(blob => {
+      const formData = new FormData()
+      formData.append('input_file', blob, name + '.png')
+      formData.append('max_views', 0)
+      formData.append('max_minutes', 1)
+      formData.append('upl', 'Upload')
+      fileURL = 'https://cors-anywhere.herokuapp.com/https://tmpfiles.org/?upload'
+      fetch(fileURL, {
+        method: 'POST',
+        mode: 'cors',
+        body: formData
+      }).then(res => {
+        if (res.headers) {
+          const blobURL = res.headers.get('X-Final-Url').replace('download', 'dl')
+          resolve(blobURL)
+        } else {
+          resolve()
+        }
+      })
+    })
+  })
+
   const dataURL = canvas.toDataURL()
   const zapierURL = 'https://hooks.zapier.com/hooks/catch/507705/o5uvtyq/'
-  fetch(zapierURL, {
+  await fetch(zapierURL, {
     method: 'POST',
     body: JSON.stringify({
       name: name,
       dataURL: dataURL,
-      finalSubmission: final
+      finalSubmission: final,
+      image: tempURL
     })
   }).then(res => {
     console.log('submitted!')
@@ -161,8 +185,15 @@ function exportToAirtable(final = 0) {
     }
   })
 }
-document.querySelector('#exportButton').addEventListener('click', e => {
-  exportToAirtable(1)
+document.querySelector('#exportButton').addEventListener('click', async e => {
+  if (e.target.disabled) {
+    return
+  }
+  e.target.className = 'spin'
+  e.target.disabled = true
+  await exportToAirtable(1)
+  e.target.className = ''
+  e.target.disabled = false
 })
 document.querySelector('#hideButton').addEventListener('click', e => {
   hidden = !hidden
