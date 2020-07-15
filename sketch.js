@@ -144,6 +144,11 @@ async function exportToAirtable(final = 0) {
     setMemory('name', name)
   }
 
+  const audioFile = 'https://physicaloldsignature.maxwofford.repl.co/fax_machine_sound_' + Math.ceil(Math.random() * 3) + '.mp3'
+  const dialup = new Audio(audioFile)
+  dialup.load()
+  dialup.play()
+
   const tempURL = await new Promise((resolve) => {
     canvas.toBlob(blob => {
       const formData = new FormData()
@@ -181,6 +186,7 @@ async function exportToAirtable(final = 0) {
     console.log('submitted!')
     if (final == 1) {
       unexportedChanges = false
+      dialup.pause()
       alert('Sent to Airtable!')
     }
   })
