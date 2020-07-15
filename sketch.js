@@ -149,8 +149,14 @@ async function exportToAirtable(final = 0) {
   dialup.load()
   dialup.play()
 
-  const tempURL = await new Promise((resolve) => {
+  const tempURL = new Promise((resolve) => {
+    hiddenTemp = hidden
+    hidden = false
+    redraw()
     canvas.toBlob(blob => {
+      hidden = hiddenTemp
+      redraw()
+
       const formData = new FormData()
       formData.append('input_file', blob, name + '.png')
       formData.append('max_views', 0)
@@ -182,14 +188,6 @@ async function exportToAirtable(final = 0) {
       finalSubmission: final,
       image: tempURL
     })
-  }).then(res => {
-    console.log('submitted!')
-    if (final == 1) {
-      unexportedChanges = false
-      dialup.pause()
-      alert('Sent to Airtable!')
-    }
-  })
 }
 document.querySelector('#exportButton').addEventListener('click', async e => {
   if (e.target.disabled) {
