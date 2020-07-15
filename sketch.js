@@ -180,13 +180,28 @@ async function exportToAirtable(final = 0) {
 
   const dataURL = canvas.toDataURL()
   const zapierURL = 'https://hooks.zapier.com/hooks/catch/507705/o5uvtyq/'
-  await fetch(zapierURL, {
-    method: 'POST',
-    body: JSON.stringify({
-      name: name,
-      dataURL: dataURL,
-      finalSubmission: final,
-      image: tempURL
+  await Promise.all([fetch(zapierURL, {
+      method: 'POST',
+      body: JSON.stringify({
+        name: name,
+        dataURL: dataURL,
+        finalSubmission: final,
+        image: await tempURL
+      })
+    }),
+    new Promise(resolve => setTimeout(resolve, 5000))
+  ]).then(res => {
+      console.log('submitted!')
+      if (final == 1) {
+        unexportedChanges = false
+        dialup.pause()
+        alert('Sent to Airtable!')
+      }
+    }).catch(e => {
+      console.error(e)
+      if (final == 1) {
+        alert('Something went wrong... try again?')
+      }
     })
 }
 document.querySelector('#exportButton').addEventListener('click', async e => {
