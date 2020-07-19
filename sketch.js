@@ -340,6 +340,7 @@ function drawClick(click, ctxVar = 1) {
 }
 
 function renderPartialCanvas() {
+  const startTS = Date.now()
   // clear the canvas
   context2.clearRect(0, 0, context2.canvas.width, context2.canvas.width)
 
@@ -349,12 +350,28 @@ function renderPartialCanvas() {
   if (lastClick) {
     if (isShiftPressed) {
       drawClick(lastClick, 2)
+      console.log('| render:', Date.now() - startTS, 'ms')
     } else {
       drawClick({
         ...lastClick,
         points: [...lastClick.points.slice(-20)]
       }, 2)
+      renderDeltaCanvas(lastClick)
+      console.log('□ partial render:', Date.now() - startTS, 'ms')
     }
+  }
+}
+
+function renderDeltaCanvas(lastClick) {
+  // don't redraw the canvas, just start drawing the delta as provided
+  if (lastClick.points.length % 20 == 0) {
+    const startTS = Date.now()
+    const points = lastClick.points.slice(-25)
+    drawClick({
+      ...lastClick,
+      points
+    }, 1)
+    console.log('▲ delta render:', Date.now() - startTS, 'ms')
   }
 }
 
@@ -374,7 +391,9 @@ function renderFullCanvas() {
 function redraw(fullRedraw = true) {
   renderPartialCanvas()
   if (fullRedraw) {
+    const startTS = Date.now()
     renderFullCanvas()
+    console.log('⊙ full render:', Date.now() - startTS, 'ms')
   }
 }
 
@@ -418,7 +437,7 @@ canvas.addEventListener('touchmove', e => {
 
 function clickStop() {
   paint = false
-  redraw()
+  redraw(true)
 }
 canvas.addEventListener('mouseup', e => {
   clickStop()
