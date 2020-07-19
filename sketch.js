@@ -1,5 +1,9 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, hidden = true
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, context, hidden = false
+
+if (!getMemory()) {
+  initMemory()
+}
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
@@ -56,13 +60,9 @@ function initMemory() {
   }
   localStorage.setItem('sketch', JSON.stringify(defaults))
 
-  if (context != undefined) {
+  if (context) {
     redraw()
   }
-}
-
-if (!getMemory()) {
-  initMemory()
 }
 
 // Initialization
