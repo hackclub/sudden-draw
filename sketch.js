@@ -356,7 +356,9 @@ function renderPartialCanvas() {
         ...lastClick,
         points: [...lastClick.points.slice(-20)]
       }, 2)
-      renderDeltaCanvas(lastClick)
+      if (!hidden) {
+        renderDeltaCanvas(lastClick)
+      }
       console.log('□ partial render:', Date.now() - startTS, 'ms')
     }
   }
