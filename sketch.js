@@ -1,5 +1,5 @@
 // session state
-var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, context, hidden = false
+var paint, isShiftPressed, mouseX, mouseY, unexportedChanges, context, hidden = true
 
 if (!getMemory()) {
   initMemory()
